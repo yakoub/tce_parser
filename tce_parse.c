@@ -6,8 +6,10 @@ typedef struct {
   void (*parse)(const char*, GameScore*);
 } route;
 
-route *router;
 #define ROUTES 8
+
+route router[ROUTES];
+
 enum router_ids {
   ClientDisconnect,
   ClientConnect,
@@ -26,9 +28,11 @@ void tce_parse(const char* line) {
   static GameScore game;
   static char players_init = 0;
   static char ignore[16], op[32], buff[BUFF_SIZE];
+  static char router_init = 0;
 
-  if (!router) {
+  if (!router_init) {
     tce_parse_init();
+    router_init = 1;
   }
   if (!players_init) {
     for(int i = 0; i < MAX_PLAYERS; i++) {
@@ -188,15 +192,9 @@ void tce_parse_init() {
     [Score]=player_score,
   };
 
-  router = malloc(sizeof(route)* ROUTES);
-
   for (int i=0; i< ROUTES; i++) {
     router[i].op = operations[i];
     router[i].parse = parsers[i];
   }
-}
-
-void tce_parse_free() {
-  free(router);
 }
 
