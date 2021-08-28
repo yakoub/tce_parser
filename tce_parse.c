@@ -2,7 +2,7 @@
 #include "data.h"
 
 typedef struct {
-  char* op;
+  const char* op;
   void (*parse)(const char*, GameScore*);
 } route;
 
@@ -103,12 +103,13 @@ void player_connect(const char* line, GameScore *game) {
 }
 
 void player_info(const char* line, GameScore *game) {
-  int team, idx;
-  sscanf(line, ": %d n", &idx);
+  static Player pl;
+
+  sscanf(line, ": %d n\\%32[^\\]\\t\\%d\\c", &pl.idx, pl.name, &pl.team);
 
   int found = -1, empty = -1;
   for(int i = 0; i < MAX_PLAYERS; i++) {
-    if (game->players[i].idx == idx) {
+    if (game->players[i].idx == pl.idx) {
       found = i;
       break;
     }
@@ -120,11 +121,10 @@ void player_info(const char* line, GameScore *game) {
     found = empty;
   }
 
-  Player *pl = &game->players[found];
-
-  sscanf(line, ": %d n\\%32[^\\]\\t\\%d\\c", &idx, pl->name, &team);
-  pl->team = team;
-  pl->idx = idx;
+  Player *p_ref = &game->players[found];
+  p_ref->idx = pl.idx;
+  p_ref->team = pl.team;
+  strcpy(p_ref->name, pl.name);
 }
 
 void team_score(const char* line, GameScore *game) {
