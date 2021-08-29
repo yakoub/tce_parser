@@ -2,7 +2,7 @@
 #include "debug.h"
 #include "data.h"
 
-#define DBLVL 2
+#define DBGLVL 2
 
 typedef struct {
   const char* op;
@@ -81,7 +81,7 @@ void init_game(const char* line, GameScore *game) {
 
   game->player_scores = 0;
 
-  debug_info(DBLVL, "init game: host %s map %s type %d\n", 
+  debug_info(DBGLVL, "init game: host %s map %s type %d\n", 
     game->hostname, game->mapname, game->gametype);
 }
 
@@ -140,7 +140,7 @@ void player_info(const char* line, GameScore *game) {
   p_ref->team = pl.team;
   strcpy(p_ref->name, pl.name);
 
-  debug_info(DBLVL, "Player: name %s idx %d team %d\n", 
+  debug_info(DBGLVL, "Player: name %s idx %d team %d\n", 
     p_ref->name, p_ref->idx, p_ref->team);
 }
 
@@ -158,13 +158,13 @@ void player_score(const char* line, GameScore *game) {
       game->players[i].score = buff.score;
       game->players[i].ping = buff.ping;
       game->player_scores++;
-      debug_info(DBLVL, "player %d register score %d, total %d\n", 
+      debug_info(DBGLVL, "player %d register score %d, total %d\n", 
         buff.idx, buff.score, game->player_scores);
       return;
     }
   }
   // report error
-  debug_info(DBLVL, "player %d score not assigned\n", buff.idx);
+  debug_info(DBGLVL, "player %d score not assigned\n", buff.idx);
 }
 
 void weapons_stats(const char* line, GameScore *game) {
@@ -179,7 +179,7 @@ void weapons_stats(const char* line, GameScore *game) {
       game->players[i].deaths = buff.deaths;
       game->players[i].headshots = buff.headshots;
 
-      debug_info(DBLVL, "player %d kills %d, deaths %d\n", 
+      debug_info(DBGLVL, "player %d kills %d, deaths %d\n", 
         buff.idx, buff.kills, buff.deaths);
       return;
     }
@@ -191,7 +191,7 @@ void shutdown_game(const char* line, GameScore *game) {
     save_game(game);
 
   }
-  debug_info(DBLVL, "game shutdown, scores %d\n", game->player_scores);
+  debug_info(DBGLVL, "game shutdown, scores %d\n", game->player_scores);
 }
 
 void tce_parse_init() {

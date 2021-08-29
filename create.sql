@@ -27,3 +27,9 @@ create table `game_player` (
   primary key (`match_id`, `idx`),
   foreign key (`match_id`) references game_match (`id`) on delete cascade
 );
+
+create or replace view top_games as 
+select count(*),id from game_match gm 
+inner join game_player gp on gm.id=gp.match_id group by gm.id 
+order by count(*) desc limit 10;
+

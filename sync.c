@@ -2,7 +2,7 @@
 #include "debug.h"
 #include "tce_parse.h"
 
-#define DBLVL 0
+#define DBGLVL 2
 
 typedef struct {
   int wd;
@@ -27,14 +27,14 @@ int sync_logs_find(int wd) {
   int empty = -1;
   for (int i=0; i < SLOTS; i++) {
     if (game_slots[i].wd == wd) {
-      debug_info(DBLVL, "wd %d found\n", wd);
+      debug_info(DBGLVL, "wd %d found\n", wd);
       return i;
     }
     if (game_slots[i].wd == empty) {
       empty = i;
     }
   }
-  debug_info(DBLVL, "wd %d not found, assign to %d\n", wd, empty);
+  debug_info(DBGLVL, "wd %d not found, assign to %d\n", wd, empty);
   return empty;
 }
 
@@ -50,7 +50,7 @@ void sync_logs_assign(int wd, const char* path) {
       game_slots[i].game_pos = 0;
       game_slots[i].console_pos = 0;
       game_slots[i].path = path;
-      debug_info(DBLVL, "wd %d assinged to %d\n", wd, i);
+      debug_info(DBGLVL, "wd %d assinged to %d\n", wd, i);
       break;
     }
   }
@@ -77,7 +77,7 @@ void sync_logs_rewind(const char* name, int wd) {
     }
     slot->game_log = fopen(strcat(filename, "/game.log"), "r");
     slot->game_pos = 0;
-    debug_info(DBLVL , "game.log rewind for wd %s", wd);
+    debug_info(DBGLVL , "game.log rewind for wd %s", wd);
   }
   if (strcmp(name, "console.log") == 0) {
     if (slot->console_log) {
@@ -85,7 +85,7 @@ void sync_logs_rewind(const char* name, int wd) {
     }
     slot->console_log = fopen(strcat(filename, "/console.log"), "r");
     slot->console_pos = 0;
-    debug_info(DBLVL , "console.log rewind for wd %s", wd);
+    debug_info(DBGLVL , "console.log rewind for wd %s", wd);
   }
 }
 
@@ -104,7 +104,7 @@ void sync_logs(const char *name, int wd) {
     if (strcmp(name, "console.log") == 0) {
       logfile = game_slots[at].console_log;
       pos = &game_slots[at].console_pos;
-      debug_info(DBLVL, "console.log for ws=%d", wd);
+      debug_info(DBGLVL, "console.log for ws=%d", wd);
     }
     else {
       return;
@@ -121,7 +121,7 @@ void sync_logs(const char *name, int wd) {
   while (fgets(buff, BUFF_SIZE, logfile)) {
     tce_parse(buff);
   }
-  debug_info(DBLVL, "wd %d, start pos %d", wd, *pos);
+  debug_info(DBGLVL, "wd %d, start pos %d", wd, *pos);
   *pos = ftell(logfile);
-  debug_info(DBLVL, ", end pos %d\n", *pos);
+  debug_info(DBGLVL, ", end pos %d\n", *pos);
 }

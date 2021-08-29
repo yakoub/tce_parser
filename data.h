@@ -24,3 +24,6 @@ typedef struct {
 } GameScore;
 
 void save_game(GameScore*);
+#define CLOSE 1
+#define OPEN 0
+void data_init(char);

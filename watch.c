@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/inotify.h>
-#include <string.h>
 #include <errno.h>
 #include <poll.h>
 #include <unistd.h>
 #include "sync.h"
 #include "debug.h"
+#include "data.h"
 
 void watch_handler(int ino_desc);
 void report_read_error();
@@ -37,6 +37,7 @@ int main(int argc, char* argv[]) {
   sync_logs_close();
 
   debug_info(1, "close");
+  data_init(CLOSE);
 
   return 0;
 }
@@ -113,4 +114,3 @@ void debug_info(int level, const char* fmt, ...) {
   }
 }
 #endif
-
