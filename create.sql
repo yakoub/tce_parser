@@ -4,10 +4,11 @@ drop table if exists `game_match`;
 create table `game_match` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `created` datetime not null default CURRENT_TIMESTAMP,
-  `mapname` varchar(32),
-  `hostname` varchar(32),
+  `mapname` varchar(64),
+  `hostname` varchar(64),
   `team_red` smallint,
   `team_blue` smallint,
+  `gametype` smallint,
 
   primary key(`id`)
 );
@@ -16,7 +17,7 @@ create table `game_player` (
   `match_id` bigint(20) not null,
   `idx` tinyint not null,
   `team` tinyint,
-  `name` varchar(32),
+  `name` varchar(64),
   `ping` smallint,
   `score` smallint,
   `kills` smallint,

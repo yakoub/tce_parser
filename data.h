@@ -1,7 +1,7 @@
 typedef struct {
   int idx;
   int team;
-  char name[32];
+  char name[64];
   int ping;
   int score;
   int kills;
@@ -13,11 +13,12 @@ typedef struct {
 #define MAX_PLAYERS 20
 
 typedef struct {
-  char hostname[32];
-  char mapname[32];
+  char hostname[64];
+  char mapname[64];
   int team_red;
   int team_blue;
   int player_scores;
+  int gametype;
 
   Player players[MAX_PLAYERS];
 } GameScore;

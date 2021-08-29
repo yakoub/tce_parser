@@ -3,7 +3,7 @@
 
 void save_game(GameScore *game) {
   printf("======================================================\n");
-  printf("host %s map %s\n", game->hostname, game->mapname);
+  printf("host %s map %s type %d\n", game->hostname, game->mapname, game->gametype);
   printf("specop %d terrorist %d\n", game->team_blue, game->team_red);
 
   for (int i=0; i<20; i++) {

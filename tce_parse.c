@@ -1,5 +1,8 @@
 #include "tce_parse.h"
+#include "debug.h"
 #include "data.h"
+
+#define DBLVL 2
 
 typedef struct {
   const char* op;
@@ -27,7 +30,7 @@ void tce_parse(const char* line) {
 
   static GameScore game;
   static char players_init = 0;
-  static char ignore[16], op[32], buff[BUFF_SIZE];
+  static char ignore[16], op[64], buff[BUFF_SIZE];
   static char router_init = 0;
 
   if (!router_init) {
@@ -41,7 +44,7 @@ void tce_parse(const char* line) {
     players_init = 1;
   }
 
-  sscanf(line, "%16s %32[^:]%[^\n]", ignore, op, buff);
+  sscanf(line, "%16s %64[^:]%[^\n]", ignore, op, buff);
 
   for(int i = 0; i < ROUTES; i++) {
     if (strcmp(router[i].op, op) == 0) {
@@ -54,21 +57,32 @@ void tce_parse(const char* line) {
 void init_game(const char* line, GameScore *game) {
   char *at = strstr(line, "mapname");
   if (at) {
-    sscanf(at, "mapname\\%32[^\\]", game->mapname);
+    sscanf(at, "mapname\\%64[^\\]", game->mapname);
   }
   else {
     strcpy(game->mapname, "not found\0");
   }
 
-  at = strstr(at, "sv_hostname");
+  at = strstr(line, "g_gametype");
   if (at) {
-    sscanf(at, "sv_hostname\\%32[^\\]", game->hostname);
+    sscanf(at, "g_gametype\\%d", &game->gametype);
+  }
+  else {
+    game->gametype = -1;
+  }
+
+  at = strstr(line, "sv_hostname");
+  if (at) {
+    sscanf(at, "sv_hostname\\%64[^\\]", game->hostname);
   }
   else {
     strcpy(game->hostname, "not found\0");
   }
 
   game->player_scores = 0;
+
+  debug_info(DBLVL, "init game: host %s map %s type %d\n", 
+    game->hostname, game->mapname, game->gametype);
 }
 
 void player_disconnect(const char* line, GameScore *game) {
@@ -105,7 +119,7 @@ void player_connect(const char* line, GameScore *game) {
 void player_info(const char* line, GameScore *game) {
   static Player pl;
 
-  sscanf(line, ": %d n\\%32[^\\]\\t\\%d\\c", &pl.idx, pl.name, &pl.team);
+  sscanf(line, ": %d n\\%64[^\\]\\t\\%d\\c", &pl.idx, pl.name, &pl.team);
 
   int found = -1, empty = -1;
   for(int i = 0; i < MAX_PLAYERS; i++) {
@@ -125,6 +139,9 @@ void player_info(const char* line, GameScore *game) {
   p_ref->idx = pl.idx;
   p_ref->team = pl.team;
   strcpy(p_ref->name, pl.name);
+
+  debug_info(DBLVL, "Player: name %s idx %d team %d\n", 
+    p_ref->name, p_ref->idx, p_ref->team);
 }
 
 void team_score(const char* line, GameScore *game) {
@@ -141,10 +158,13 @@ void player_score(const char* line, GameScore *game) {
       game->players[i].score = buff.score;
       game->players[i].ping = buff.ping;
       game->player_scores++;
+      debug_info(DBLVL, "player %d register score %d, total %d\n", 
+        buff.idx, buff.score, game->player_scores);
       return;
     }
   }
   // report error
+  debug_info(DBLVL, "player %d score not assigned\n", buff.idx);
 }
 
 void weapons_stats(const char* line, GameScore *game) {
@@ -158,6 +178,9 @@ void weapons_stats(const char* line, GameScore *game) {
       game->players[i].kills = buff.kills;
       game->players[i].deaths = buff.deaths;
       game->players[i].headshots = buff.headshots;
+
+      debug_info(DBLVL, "player %d kills %d, deaths %d\n", 
+        buff.idx, buff.kills, buff.deaths);
       return;
     }
   }
@@ -166,7 +189,9 @@ void weapons_stats(const char* line, GameScore *game) {
 void shutdown_game(const char* line, GameScore *game) {
   if (game->player_scores > 0) {
     save_game(game);
+
   }
+  debug_info(DBLVL, "game shutdown, scores %d\n", game->player_scores);
 }
 
 void tce_parse_init() {
