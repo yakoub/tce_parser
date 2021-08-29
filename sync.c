@@ -43,9 +43,9 @@ void sync_logs_assign(int wd, const char* path) {
   for (int i=0; i<SLOTS; i++) {
     if (game_slots[i].wd == -1) {
       game_slots[i].wd = wd;
-      strcpy(filename, path);
+      strncpy(filename, path, 50);
       game_slots[i].game_log = fopen(strcat(filename, "/game.log"), "r");
-      strcpy(filename, path);
+      strncpy(filename, path, 50);
       game_slots[i].console_log = fopen(strcat(filename, "/console.log"), "r");
       game_slots[i].game_pos = 0;
       game_slots[i].console_pos = 0;
