@@ -1,5 +1,5 @@
-myinc != mysql_config --include
-mylib != mysql_config --libs
+myinc != mariadb_config --include
+mylib != mariadb_config --libs
 
 run: watch.c sync.o tce_parse.o data.o
 	gcc -g ${mylib} watch.c sync.o tce_parse.o data.o -o tce_watch
