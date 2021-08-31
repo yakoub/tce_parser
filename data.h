@@ -10,6 +10,9 @@ typedef struct {
 
 } Player;
 
+#define Empty -1
+#define Gone -2
+
 #define MAX_PLAYERS 20
 
 typedef struct {

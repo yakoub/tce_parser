@@ -1,6 +1,7 @@
 #include "tce_parse.h"
 #include "debug.h"
 #include "data.h"
+#include <signal.h>
 
 #define DBGLVL 2
 
@@ -39,7 +40,7 @@ void tce_parse(const char* line) {
   }
   if (!players_init) {
     for(int i = 0; i < MAX_PLAYERS; i++) {
-      game.players[i].idx = -1;
+      game.players[i].idx = Empty;
     }
     players_init = 1;
   }
@@ -88,10 +89,10 @@ void init_game(const char* line, GameScore *game) {
 void player_disconnect(const char* line, GameScore *game) {
   int idx;
 
-  sscanf(line, ": %d n", &idx);
+  sscanf(line, ": %d", &idx);
   for(int i = 0; i < MAX_PLAYERS; i++) {
     if (game->players[i].idx == idx) {
-      game->players[i].idx = -1;
+      game->players[i].idx = Gone;
       break;
     }
   }
@@ -100,13 +101,13 @@ void player_disconnect(const char* line, GameScore *game) {
 void player_connect(const char* line, GameScore *game) {
   int idx;
 
-  sscanf(line, ": %d n", &idx);
+  sscanf(line, ": %d", &idx);
   int empty = -1;
   for(int i = 0; i < MAX_PLAYERS; i++) {
     if (game->players[i].idx == idx) {
       return;
     }
-    if (game->players[i].idx == empty) {
+    if (game->players[i].idx == Empty) {
       empty = i;
     }
   }
@@ -121,18 +122,23 @@ void player_info(const char* line, GameScore *game) {
 
   sscanf(line, ": %d n\\%64[^\\]\\t\\%d\\c", &pl.idx, pl.name, &pl.team);
 
-  int found = -1, empty = -1;
+  int found = Empty, empty = Empty;
   for(int i = 0; i < MAX_PLAYERS; i++) {
     if (game->players[i].idx == pl.idx) {
       found = i;
       break;
     }
-    if (game->players[i].idx == empty) {
+    if (game->players[i].idx == Empty) {
       empty = i;
     }
   }
-  if (found == -1) {
-    found = empty;
+  if (found == Empty) {
+    if (empty != Empty) {
+      found = empty;
+    }
+    else {
+      return;
+    }
   }
 
   Player *p_ref = &game->players[found];
@@ -189,12 +195,20 @@ void weapons_stats(const char* line, GameScore *game) {
 void shutdown_game(const char* line, GameScore *game) {
   if (game->player_scores > 0) {
     save_game(game);
-
   }
   debug_info(DBGLVL, "game shutdown, scores %d\n", game->player_scores);
 }
 
+
+void tce_parse_action(int sig) {
+  tce_parse("00:00 ShutdownGame:");
+}
+
 void tce_parse_init() {
+  struct sigaction sa;
+  sa.sa_handler = tce_parse_action;
+  sigaction(SIGTERM, &sa, NULL);
+
   char *operations[ROUTES] = {
     [ClientDisconnect]="ClientDisconnect",
     [ClientConnect]="ClientConnect",
