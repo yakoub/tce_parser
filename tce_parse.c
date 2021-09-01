@@ -93,6 +93,7 @@ void player_disconnect(const char* line, GameScore *game) {
   for(int i = 0; i < MAX_PLAYERS; i++) {
     if (game->players[i].idx == idx) {
       game->players[i].idx = Gone;
+      debug_info(DBGLVL, "Player: idx %d gone\n", idx);
       break;
     }
   }
@@ -114,7 +115,7 @@ void player_connect(const char* line, GameScore *game) {
   Player *pl = &game->players[empty];
   pl->idx = idx;
   strcpy(pl->name, "unknown");
-  pl->team = 4;
+  debug_info(DBGLVL, "Player: idx %d new\n", game->players[empty].idx);
 }
 
 void player_info(const char* line, GameScore *game) {
@@ -147,7 +148,7 @@ void player_info(const char* line, GameScore *game) {
   strcpy(p_ref->name, pl.name);
 
   debug_info(DBGLVL, "Player: name %s idx %d team %d\n", 
-    p_ref->name, p_ref->idx, p_ref->team);
+    game->players[found].name, p_ref->idx, p_ref->team);
 }
 
 void team_score(const char* line, GameScore *game) {
@@ -202,6 +203,9 @@ void shutdown_game(const char* line, GameScore *game) {
 
 void tce_parse_action(int sig) {
   tce_parse("00:00 ShutdownGame:");
+  data_init(CLOSE);
+  debug_info(DBGLVL, "game shutdown by signal");
+  exit(EXIT_SUCCESS);
 }
 
 void tce_parse_init() {
