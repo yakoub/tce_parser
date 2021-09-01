@@ -92,7 +92,7 @@ void player_disconnect(const char* line, GameScore *game) {
   sscanf(line, ": %d", &idx);
   for(int i = 0; i < MAX_PLAYERS; i++) {
     if (game->players[i].idx == idx) {
-      game->players[i].idx = Gone;
+      game->players[i].idx *= -1;
       debug_info(DBGLVL, "Player: idx %d gone\n", idx);
       break;
     }
@@ -103,12 +103,17 @@ void player_connect(const char* line, GameScore *game) {
   int idx;
 
   sscanf(line, ": %d", &idx);
-  int empty = -1;
+  int empty = -1, *slot_idx = NULL;
   for(int i = 0; i < MAX_PLAYERS; i++) {
-    if (game->players[i].idx == idx) {
+    slot_idx = &game->players[i].idx;
+    if (*slot_idx == idx) {
       return;
     }
-    if (game->players[i].idx == Empty) {
+    if (*slot_idx == idx * -1) {
+      *slot_idx = idx;
+      return;
+    }
+    if (game->players[i].idx == Empty && empty == -1) {
       empty = i;
     }
   }
@@ -197,6 +202,13 @@ void shutdown_game(const char* line, GameScore *game) {
   if (game->player_scores > 0) {
     save_game(game);
   }
+  else {
+    for (int i=0; i < MAX_PLAYERS; i++) {
+      if (game->players[i].idx < 0) {
+        game->players[i].idx = Empty;
+      }
+    }
+  }
   debug_info(DBGLVL, "game shutdown, scores %d\n", game->player_scores);
 }
 
@@ -212,6 +224,7 @@ void tce_parse_init() {
   struct sigaction sa;
   sa.sa_handler = tce_parse_action;
   sigaction(SIGTERM, &sa, NULL);
+  sigaction(SIGINT, &sa, NULL);
 
   char *operations[ROUTES] = {
     [ClientDisconnect]="ClientDisconnect",

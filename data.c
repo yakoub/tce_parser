@@ -47,8 +47,9 @@ void save_game(GameScore *game) {
   char player_buff[192];
   size_t total_written = strlen(Query.insert_player);
   Player *player;
+  int idx;
   strcpy(query_buff, Query.insert_player);
-  for (int i=0; i<20; i++) {
+  for (int i=0; i<MAX_PLAYERS; i++) {
     if (game->players[i].idx == Empty) {
       continue;
     }
@@ -56,13 +57,19 @@ void save_game(GameScore *game) {
     player = &game->players[i];
     es(tce_db, name1, player->name, strlen(player->name));
 
+    if (player->idx < 0) {
+      idx = player->idx * -1; 
+      player->idx == Empty;
+    }
+    else {
+      idx = player->idx; 
+    }
+
     written = snprintf(player_buff, 192, Query.insert_player_values, 
-      game_id, player->idx, player->team, name1, player->ping, player->score, 
+      game_id, idx, player->team, name1, player->ping, player->score, 
       player->kills, player->deaths, player->headshots
     );
-    if (game->players[i].idx == Gone) {
-      game->players[i].idx == Empty;
-    }
+
     if (written > 192) {
       debug_info(DBGLVL, "aborted query %.128s\n", query_buff);
       return;
@@ -75,9 +82,10 @@ void save_game(GameScore *game) {
   }
   size_t last_comma = strlen(query_buff) - 1;
   query_buff[last_comma] = '\0';
+  debug_info(DBGLVL, "players data query %.256s\n", query_buff);
   int ret2 = mysql_real_query(tce_db, query_buff, last_comma);
   if (ret2 != 0) {
-    //debug_info(DBGLVL, "failed : %s\n", query_buff);
+    debug_info(DBGLVL, "query failed : %s\n", query_buff);
   }
 }
 
