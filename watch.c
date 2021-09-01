@@ -11,14 +11,19 @@
 void watch_handler(int ino_desc);
 void report_read_error();
 
-const char *paths[2] = {"./watch.d", "./watch2.d"};
+#define PATH_COUNT 3
+const char *paths[PATH_COUNT] = {
+	"/home/etl/tce_obj/tcetest", 
+	"/home/etl/tce_bc/tcetest",
+	"/home/etl/tce_ctf/tcetest"
+};
 
 int main(int argc, char* argv[]) {
   int ino_desc = inotify_init();  
-  int ino_watch[2];
+  int ino_watch[PATH_COUNT];
 
   sync_logs_init();
-  for (int i=0; i<2; i++) {
+  for (int i=0; i<PATH_COUNT; i++) {
     ino_watch[i] = inotify_add_watch(ino_desc, paths[i], IN_MODIFY | IN_CREATE);
     if (ino_watch[i] == -1) {
       printf("watch error %d", errno);
@@ -30,7 +35,7 @@ int main(int argc, char* argv[]) {
   }
 
   watch_handler(ino_desc);
-  for (int i=0; i<2; i++) {
+  for (int i=0; i<PATH_COUNT; i++) {
     inotify_rm_watch(ino_watch[i], ino_desc);
   }
   close(ino_desc);
