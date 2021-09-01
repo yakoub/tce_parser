@@ -77,7 +77,7 @@ void debug_info(int level, const char* fmt, ...) {
   static FILE* fout = NULL;
   
   if (!fout) {
-    fout = fopen("info.log", "w");
+    fout = fopen("/home/etl/watchinfo.log", "w");
     if (!fout) {
       fout = stdout;
     }
