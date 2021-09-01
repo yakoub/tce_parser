@@ -49,9 +49,10 @@ void save_game(GameScore *game) {
   Player *player;
   strcpy(query_buff, Query.insert_player);
   for (int i=0; i<20; i++) {
-    if (game->players[i].idx == -1) {
+    if (game->players[i].idx == Empty) {
       continue;
     }
+
     player = &game->players[i];
     es(tce_db, name1, player->name, strlen(player->name));
 
@@ -59,6 +60,9 @@ void save_game(GameScore *game) {
       game_id, player->idx, player->team, name1, player->ping, player->score, 
       player->kills, player->deaths, player->headshots
     );
+    if (game->players[i].idx == Gone) {
+      game->players[i].idx == Empty;
+    }
     if (written > 192) {
       debug_info(DBGLVL, "aborted query %.128s\n", query_buff);
       return;

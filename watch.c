@@ -9,7 +9,6 @@
 #include "data.h"
 
 void watch_handler(int ino_desc);
-void report_read_error();
 
 #define PATH_COUNT 3
 const char *paths[PATH_COUNT] = {
@@ -50,24 +49,16 @@ int main(int argc, char* argv[]) {
 void watch_handler(int ino_desc) {
   char events_buff[4096]
        __attribute__ ((aligned(__alignof__(struct inotify_event))));
-  ssize_t len;
-
   struct pollfd pfds[1];
 
   pfds[0].fd = ino_desc;
   pfds[0].events = POLLIN;
   
-
-  // todo: implement sigaction handler
+  ssize_t len;
   while(1) {
     printf("enter poll\n");
     poll(pfds, 1, -1);
     len=read(ino_desc, events_buff, sizeof(events_buff));
-
-    if (len == -1) {
-      report_read_error();
-      return;
-    }
     
     const struct inotify_event *ev = NULL;
     for (char *ptr = events_buff; ptr < events_buff + len;
@@ -79,15 +70,6 @@ void watch_handler(int ino_desc) {
       sync_logs(ev->name, ev->wd);
     }
   }
-}
-
-void report_read_error() {
-    printf("read error = %d\n", errno);
-    int errno_s[] = {EAGAIN, EWOULDBLOCK, EBADF, EFAULT, EINTR, EINVAL, EIO, EISDIR};
-    for (int i=0; i < 8; i++) {
-      printf("\t %d", errno_s[i]);
-    }
-    printf("\n");
 }
 
 #if DEBUG_LEVEL>0
