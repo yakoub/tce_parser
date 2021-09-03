@@ -82,7 +82,7 @@ void init_game(const char* line, GameScore *game) {
 
   game->player_scores = 0;
 
-  debug_info(DBGLVL, "init game: host %s map %s type %d\n", 
+  debug_info(DBGLVL + 1, "init game: host %s map %s type %d\n", 
     game->hostname, game->mapname, game->gametype);
 }
 
@@ -166,7 +166,8 @@ void player_score(const char* line, GameScore *game) {
     &buff.score, &buff.ping, &buff.idx);
 
   for (int i=0; i < MAX_PLAYERS; i++) {
-    if (game->players[i].idx == buff.idx) {
+    if (game->players[i].idx == buff.idx
+      || game->players[i].idx == buff.idx * -1) {
       game->players[i].score = buff.score;
       game->players[i].ping = buff.ping;
       game->player_scores++;
@@ -180,22 +181,52 @@ void player_score(const char* line, GameScore *game) {
 }
 
 void weapons_stats(const char* line, GameScore *game) {
-  Player buff;
-  int i;
-  sscanf(line, ": %d %d %d %d %d %d %d %d",
-    &buff.idx, &i, &i, &i, &i, &buff.kills, &buff.deaths, &buff.headshots);
+  Player *p = NULL;
+  int idx, ignore, mask, hits, kills, deaths, headshots;
+  static char buff[256];
+  sscanf(line, ": %d %d %d %256[^#]",
+    &idx, &ignore, &mask, buff);
 
   for (int i=0; i < MAX_PLAYERS; i++) {
-    if (game->players[i].idx == buff.idx) {
-      game->players[i].kills = buff.kills;
-      game->players[i].deaths = buff.deaths;
-      game->players[i].headshots = buff.headshots;
-
-      debug_info(DBGLVL, "player %d kills %d, deaths %d\n", 
-        buff.idx, buff.kills, buff.deaths);
-      return;
+    if (game->players[i].idx == idx) {
+      p = game->players + i;
     }
   }
+  if (!p) {
+    debug_info(DBGLVL, "player %d not found for  weapons\n", idx);
+    return;
+  }
+
+  debug_info(DBGLVL, "mask %d, ", mask);
+  int weapons = 0;
+  while(mask > 0 && weapons < 16) {
+    if (mask & 1) {
+      weapons++;
+    }
+    mask = mask >> 1;
+  }
+  debug_info(DBGLVL, "weapons %d\n", weapons);
+  
+  p->kills = p->deaths = p->headshots = 0;
+  int read;
+  while (weapons--) {
+    debug_info(DBGLVL, "wpns buff %s\n", buff);
+    read = sscanf(buff, " %d %d %d %d %d%256[^#]", 
+      &hits, &ignore, &kills, &deaths, &headshots, buff);
+    if (read < 5) {
+      debug_info(DBGLVL, "weapon stats error for %d, buff %s", idx, buff);
+      break;
+    }
+    if (hits > 0) { // not ctf related
+      p->kills += kills;
+      p->deaths += deaths;
+      p->headshots += headshots;
+    }
+  }
+  sscanf(buff, " %d %d", &p->damage_given, &p->damage_recieved);
+
+  debug_info(DBGLVL, "player %d kills %d, deaths %d given %d received %d\n", 
+    p->idx, p->kills, p->deaths, p->damage_given, p->damage_recieved);
 }
 
 void shutdown_game(const char* line, GameScore *game) {
@@ -209,14 +240,14 @@ void shutdown_game(const char* line, GameScore *game) {
       }
     }
   }
-  debug_info(DBGLVL, "game shutdown, scores %d\n", game->player_scores);
+  debug_info(DBGLVL + 1, "game shutdown, scores %d\n", game->player_scores);
 }
 
 
 void tce_parse_action(int sig) {
   tce_parse("00:00 ShutdownGame:");
   data_init(CLOSE);
-  debug_info(DBGLVL, "game shutdown by signal");
+  debug_info(DBGLVL + 1, "game shutdown by signal");
   exit(EXIT_SUCCESS);
 }
 

@@ -7,11 +7,12 @@ typedef struct {
   int kills;
   int deaths;
   int headshots;
+  int damage_given;
+  int damage_recieved;
 
 } Player;
 
-#define Empty -1
-#define Gone -2
+#define Empty -30
 
 #define MAX_PLAYERS 20
 

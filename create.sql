@@ -23,6 +23,8 @@ create table `game_player` (
   `kills` smallint,
   `deaths` smallint,
   `headshots` smallint,
+  `damage_given` smallint,
+  `damage_recieved` smallint,
 
   primary key (`match_id`, `idx`),
   foreign key (`match_id`) references game_match (`id`) on delete cascade

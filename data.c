@@ -4,7 +4,7 @@
 #include <string.h>
 #include "debug.h"
 
-#define DBGLVL 1
+#define DBGLVL 2
 
 MYSQL *tce_db;
 
@@ -67,7 +67,8 @@ void save_game(GameScore *game) {
 
     written = snprintf(player_buff, 192, Query.insert_player_values, 
       game_id, idx, player->team, name1, player->ping, player->score, 
-      player->kills, player->deaths, player->headshots
+      player->kills, player->deaths, player->headshots,
+      player->damage_given, player->damage_recieved
     );
 
     if (written > 192) {
@@ -82,7 +83,7 @@ void save_game(GameScore *game) {
   }
   size_t last_comma = strlen(query_buff) - 1;
   query_buff[last_comma] = '\0';
-  debug_info(DBGLVL, "players data query %.256s\n", query_buff);
+  debug_info(DBGLVL + 1, "players data query %.512s\n", query_buff);
   int ret2 = mysql_real_query(tce_db, query_buff, last_comma);
   if (ret2 != 0) {
     debug_info(DBGLVL, "query failed : %s\n", query_buff);
@@ -92,9 +93,10 @@ void save_game(GameScore *game) {
 void data_sql_init() {
   Query.insert_player = 
       "insert into game_player"
-      " (match_id, idx, team, name, ping, score, kills, deaths, headshots)"
+      " (match_id, idx, team, name, ping,"
+      " score, kills, deaths, headshots, damage_given, damage_recieved)"
       " values ";
-  Query.insert_player_values = "(%d, %d, %d, '%s', %d, %d, %d, %d, %d),";
+  Query.insert_player_values = "(%d, %d, %d, '%s', %d, %d, %d, %d, %d, %d, %d),";
   Query.insert_game = 
       "insert into game_match"
       " (mapname, hostname, team_red, team_blue, gametype)"
