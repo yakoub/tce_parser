@@ -230,7 +230,7 @@ void weapons_stats(const char* line, GameScore *game) {
 }
 
 void shutdown_game(const char* line, GameScore *game) {
-  if (game->player_scores > 0) {
+  if (game->player_scores > 1) {
     save_game(game);
   }
   else {
