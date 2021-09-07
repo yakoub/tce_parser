@@ -103,14 +103,14 @@ void data_sql_init() {
       " values ('%s', '%s', %d, %d, %d)";
 }
 
-void data_init(char close) {
+void data_init(stage st) {
   static char once = 0;
 
   if (tce_db != NULL) {
     return;
   }
 
-  if (close) {
+  if (st == CLOSE) {
     debug_info(DBGLVL+1, "db closed\n");
     mysql_close(tce_db);
     return;
@@ -123,8 +123,10 @@ void data_init(char close) {
   once = 1;
 
   tce_db = mysql_init(NULL);
+  DataConfig my;
+  config_data(&my);
   tce_db = mysql_real_connect(
-    tce_db, "localhost", "etl", NULL, "tce_stats", 0, NULL, 0);
+    tce_db, my.host, my.user, my.password, my.db, 0, NULL, 0);
   if (tce_db) {
     debug_info(DBGLVL+1, "connection good\n");
   }

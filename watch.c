@@ -9,20 +9,15 @@
 #include "data.h"
 
 void watch_handler(int ino_desc);
-
-#define PATH_COUNT 3
-const char *paths[PATH_COUNT] = {
-	"/home/etl/tce_obj/tcetest", 
-	"/home/etl/tce_bc/tcetest",
-	"/home/etl/tce_ctf/tcetest"
-};
+char ** config_paths(int *);
 
 int main(int argc, char* argv[]) {
   int ino_desc = inotify_init();  
-  int ino_watch[PATH_COUNT];
+  int path_count;
+  char **paths = config_paths(&path_count);
+  int *ino_watch = malloc(path_count * sizeof(int));
 
-  sync_logs_init();
-  for (int i=0; i<PATH_COUNT; i++) {
+  for (int i=0; i < path_count; i++) {
     ino_watch[i] = inotify_add_watch(ino_desc, paths[i], IN_MODIFY | IN_CREATE);
     if (ino_watch[i] == -1) {
       printf("watch error %d", errno);
@@ -34,7 +29,8 @@ int main(int argc, char* argv[]) {
   }
 
   watch_handler(ino_desc);
-  for (int i=0; i<PATH_COUNT; i++) {
+
+  for (int i=0; i < path_count; i++) {
     inotify_rm_watch(ino_watch[i], ino_desc);
   }
   close(ino_desc);
@@ -77,7 +73,7 @@ void debug_info(int level, const char* fmt, ...) {
   static FILE* fout = NULL;
   
   if (!fout) {
-    fout = fopen("/home/etl/watchinfo.log", "w");
+    fout = fopen("./watchinfo.log", "w");
     if (!fout) {
       fout = stdout;
     }

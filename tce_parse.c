@@ -1,6 +1,5 @@
 #include "tce_parse.h"
 #include "debug.h"
-#include "data.h"
 #include <signal.h>
 
 #define DBGLVL 2
@@ -27,9 +26,8 @@ enum router_ids {
 
 void tce_parse_init();
 
-void tce_parse(const char* line) {
+void tce_parse(const char* line, GameScore *game) {
 
-  static GameScore game;
   static char players_init = 0;
   static char ignore[16], op[64], buff[BUFF_SIZE];
   static char router_init = 0;
@@ -40,7 +38,7 @@ void tce_parse(const char* line) {
   }
   if (!players_init) {
     for(int i = 0; i < MAX_PLAYERS; i++) {
-      game.players[i].idx = Empty;
+      game->players[i].idx = Empty;
     }
     players_init = 1;
   }
@@ -49,7 +47,7 @@ void tce_parse(const char* line) {
 
   for(int i = 0; i < ROUTES; i++) {
     if (strcmp(router[i].op, op) == 0) {
-      router[i].parse(buff, &game);
+      router[i].parse(buff, game);
       break;
     }
   }
@@ -243,19 +241,7 @@ void shutdown_game(const char* line, GameScore *game) {
   debug_info(DBGLVL + 1, "game shutdown, scores %d\n", game->player_scores);
 }
 
-
-void tce_parse_action(int sig) {
-  tce_parse("00:00 ShutdownGame:");
-  data_init(CLOSE);
-  debug_info(DBGLVL + 1, "game shutdown by signal");
-  exit(EXIT_SUCCESS);
-}
-
 void tce_parse_init() {
-  struct sigaction sa;
-  sa.sa_handler = tce_parse_action;
-  sigaction(SIGTERM, &sa, NULL);
-  sigaction(SIGINT, &sa, NULL);
 
   char *operations[ROUTES] = {
     [ClientDisconnect]="ClientDisconnect",

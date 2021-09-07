@@ -1,6 +1,8 @@
 #include "sync.h"
 #include "debug.h"
 #include "tce_parse.h"
+#include "data.h"
+#include <signal.h>
 
 #define DBGLVL 2
 
@@ -11,13 +13,32 @@ typedef struct {
   long game_pos;
   long console_pos;
   const char *path;
+  GameScore *game;
 } game_dir;
 
 #define SLOTS 20
 
 game_dir game_slots[SLOTS];
 
+
+void sync_logs_action(int sig) {
+
+  for (int i=0; i < SLOTS; i++) {
+    if (game_slots[i].wd != -1) {
+      tce_parse("00:00 ShutdownGame:", game_slots[i].game);
+    }
+  }
+  data_init(CLOSE);
+  debug_info(DBGLVL + 1, "game shutdown by signal");
+  exit(EXIT_SUCCESS);
+}
+
 void sync_logs_init() {
+  struct sigaction sa;
+  sa.sa_handler = sync_logs_action;
+  sigaction(SIGTERM, &sa, NULL);
+  sigaction(SIGINT, &sa, NULL);
+
   for (int i=0; i < SLOTS; i++) {
     game_slots[i].wd = -1;
   }
@@ -50,10 +71,12 @@ void sync_logs_assign(int wd, const char* path) {
       game_slots[i].game_pos = 0;
       game_slots[i].console_pos = 0;
       game_slots[i].path = path;
+      game_slots[i].game = malloc(sizeof(GameScore));
       debug_info(DBGLVL, "wd %d assinged to %d\n", wd, i);
-      break;
+      return;
     }
   }
+  debug_info(DBGLVL, "wd %d not assinged \n", wd);
 }
 
 void sync_logs_close() {
@@ -104,7 +127,7 @@ void sync_logs(const char *name, int wd) {
     if (strcmp(name, "console.log") == 0) {
       logfile = game_slots[at].console_log;
       pos = &game_slots[at].console_pos;
-      debug_info(DBGLVL, "console.log for ws=%d", wd);
+      debug_info(DBGLVL+1, "console.log for ws=%d", wd);
     }
     else {
       return;
@@ -119,7 +142,7 @@ void sync_logs(const char *name, int wd) {
     rewind(logfile);
   }
   while (fgets(buff, BUFF_SIZE, logfile)) {
-    tce_parse(buff);
+    tce_parse(buff, game_slots[at].game);
   }
   debug_info(DBGLVL, "wd %d, start pos %d", wd, *pos);
   *pos = ftell(logfile);
