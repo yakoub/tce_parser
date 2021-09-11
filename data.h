@@ -13,6 +13,8 @@ typedef enum {CLOSE, OPEN} stage;
 void data_init(stage);
 
 typedef struct {
+  unsigned long player_id;
+  char guid[33];
   int idx;
   int team;
   char name[64];
@@ -37,9 +39,13 @@ typedef struct {
   int team_blue;
   int player_scores;
   int gametype;
+  unsigned long game_id;
 
   Player players[MAX_PLAYERS];
+  int client_connect;
+
 } GameScore;
 
-void save_game(GameScore*);
+void save_game_scores(GameScore*);
+void data_sync_player(Player*);
 #endif
