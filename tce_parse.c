@@ -9,17 +9,21 @@ typedef struct {
   void (*parse)(const char*, GameScore*);
 } route;
 
-#define ROUTES 8
+#define ROUTES 12
 
 route router[ROUTES];
 
 enum router_ids {
+  InitGame,
+  Map,
+  ShutdownGame,
   ClientDisconnect,
   ClientConnect,
-  InitGame,
-  ShutdownGame,
+  ClientBegin,
+  Userinfo,
   ClientUserinfoChanged,
   Team,
+  LegacyTeam,
   WeaponStats,
   Score
 };
@@ -28,19 +32,12 @@ void tce_parse_init();
 
 void tce_parse(const char* line, GameScore *game) {
 
-  static char players_init = 0;
   static char ignore[16], op[64], buff[BUFF_SIZE];
   static char router_init = 0;
 
   if (!router_init) {
     tce_parse_init();
     router_init = 1;
-  }
-  if (!players_init) {
-    for(int i = 0; i < MAX_PLAYERS; i++) {
-      game->players[i].idx = Empty;
-    }
-    players_init = 1;
   }
 
   sscanf(line, "%16s %64[^:]%[^\n]", ignore, op, buff);
@@ -84,6 +81,16 @@ void init_game(const char* line, GameScore *game) {
     game->hostname, game->mapname, game->gametype);
 }
 
+void init_legacy_game(const char* line, GameScore *game) {
+  sscanf(line, ": %64s", game->mapname);
+  strcpy(game->hostname, "legacy");
+  game->gametype = 9;
+  game->player_scores = 0;
+
+  debug_info(DBGLVL + 1, "init game: host %s map %s type %d\n", 
+    game->hostname, game->mapname, game->gametype);
+}
+
 void player_disconnect(const char* line, GameScore *game) {
   int idx;
 
@@ -105,9 +112,11 @@ void player_connect(const char* line, GameScore *game) {
   for(int i = 0; i < MAX_PLAYERS; i++) {
     slot_idx = &game->players[i].idx;
     if (*slot_idx == idx) {
+      game->client_connect = i;
       return;
     }
     if (*slot_idx == idx * -1) {
+      game->client_connect = i;
       *slot_idx = idx;
       return;
     }
@@ -117,45 +126,77 @@ void player_connect(const char* line, GameScore *game) {
   }
   Player *pl = &game->players[empty];
   pl->idx = idx;
-  strcpy(pl->name, "unknown");
+  game->client_connect = empty;
   debug_info(DBGLVL, "Player: idx %d new\n", game->players[empty].idx);
 }
 
+void player_begin(const char* line, GameScore *game) {
+  game->client_connect = -1;
+}
+
 void player_info(const char* line, GameScore *game) {
-  static Player pl;
+  if (game->client_connect == -1) {
+    return;
+  }
+  static char name[64], guid[33];
 
-  sscanf(line, ": %d n\\%64[^\\]\\t\\%d\\c", &pl.idx, pl.name, &pl.team);
+  Player *pl = game->players + game->client_connect;
+  char *at = strstr(line, "cl_guid");
+  if (at) {
+    sscanf(at, "cl_guid\\%33[^\\]", guid);
+  }
+  else {
+    return;
+  }
+  at = strstr(line, "name");
+  if (at) {
+    sscanf(at, "name\\%64[^\\]", name);
+  }
+  else {
+    return;
+  }
+  if (strcmp(name, pl->name) != 0
+    || strcmp(guid, pl->guid) != 0) {
+    strncpy(pl->name, name, 64);
+    strncpy(pl->guid, guid, 33);
+    data_sync_player(pl);
+  }
+}
 
-  int found = Empty, empty = Empty;
+void player_info_change(const char* line, GameScore *game) {
+  static char name[64];
+  int idx, team;
+
+  sscanf(line, ": %d n\\%64[^\\]\\t\\%d\\c", &idx, name, &team);
+
+  int found = -1;
   for(int i = 0; i < MAX_PLAYERS; i++) {
-    if (game->players[i].idx == pl.idx) {
+    if (game->players[i].idx == idx) {
       found = i;
+      game->players[i].team = team;
+      if (strncmp(game->players[i].name, name, 64) != 0) {
+        strncpy(game->players[i].name, name, 64);
+        data_sync_player(game->players + i);
+      }
       break;
     }
-    if (game->players[i].idx == Empty) {
-      empty = i;
-    }
   }
-  if (found == Empty) {
-    if (empty != Empty) {
-      found = empty;
-    }
-    else {
-      return;
-    }
+  if (found > -1) {
+    debug_info(DBGLVL + 1, "Player: name %s idx %d team %d\n", 
+      game->players[found].name, game->players[found].idx, game->players[found].team);
   }
-
-  Player *p_ref = &game->players[found];
-  p_ref->idx = pl.idx;
-  p_ref->team = pl.team;
-  strcpy(p_ref->name, pl.name);
-
-  debug_info(DBGLVL, "Player: name %s idx %d team %d\n", 
-    game->players[found].name, p_ref->idx, p_ref->team);
+  else {
+    debug_info(DBGLVL, "Player not found: name %s idx %d team %d\n",
+      name, idx, team);
+  }
 }
 
 void team_score(const char* line, GameScore *game) {
   sscanf(line, ":%d blue%d", &game->team_red, &game->team_blue);
+}
+
+void team_legacy_score(const char* line, GameScore *game) {
+  sscanf(line, ":%d allies:%d", &game->team_red, &game->team_blue);
 }
 
 void player_score(const char* line, GameScore *game) {
@@ -229,7 +270,7 @@ void weapons_stats(const char* line, GameScore *game) {
 
 void shutdown_game(const char* line, GameScore *game) {
   if (game->player_scores > 1) {
-    save_game(game);
+    save_game_scores(game);
   }
   else {
     for (int i=0; i < MAX_PLAYERS; i++) {
@@ -244,23 +285,31 @@ void shutdown_game(const char* line, GameScore *game) {
 void tce_parse_init() {
 
   char *operations[ROUTES] = {
+    [InitGame]="InitGame",
+    [Map]="map",
+    [ShutdownGame]="ShutdownGame",
     [ClientDisconnect]="ClientDisconnect",
     [ClientConnect]="ClientConnect",
-    [InitGame]="InitGame",
-    [ShutdownGame]="ShutdownGame",
+    [ClientBegin]="ClientBegin",
+    [Userinfo]="Userinfo",
     [ClientUserinfoChanged]="ClientUserinfoChanged",
     [Team]="red",
+    [LegacyTeam]="axis",
     [WeaponStats]="WeaponStats",
     [Score]="score"
   };
 
   void (*parsers[ROUTES])(const char*, GameScore*) = {
+    [InitGame]=init_game,
+    [Map]=init_legacy_game,
+    [ShutdownGame]=shutdown_game,
     [ClientDisconnect]=player_disconnect,
     [ClientConnect]=player_connect,
-    [InitGame]=init_game,
-    [ShutdownGame]=shutdown_game,
-    [ClientUserinfoChanged]=player_info,
+    [ClientBegin]=player_begin,
+    [Userinfo]=player_info,
+    [ClientUserinfoChanged]=player_info_change,
     [Team]=team_score,
+    [LegacyTeam]=team_legacy_score,
     [WeaponStats]=weapons_stats,
     [Score]=player_score,
   };
@@ -268,6 +317,14 @@ void tce_parse_init() {
   for (int i=0; i< ROUTES; i++) {
     router[i].op = operations[i];
     router[i].parse = parsers[i];
+  }
+}
+
+void tce_parse_game_init(GameScore *game) {
+  for(int i = 0; i < MAX_PLAYERS; i++) {
+    game->players[i].idx = Empty;
+    game->players[i].player_id = 0;
+    game->players[i].guid[0] = '#';
   }
 }
 
