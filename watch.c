@@ -17,10 +17,12 @@ int main(int argc, char* argv[]) {
   char **paths = config_paths(&path_count);
   int *ino_watch = malloc(path_count * sizeof(int));
 
+  sync_logs_init();
+
   for (int i=0; i < path_count; i++) {
     ino_watch[i] = inotify_add_watch(ino_desc, paths[i], IN_MODIFY | IN_CREATE);
     if (ino_watch[i] == -1) {
-      printf("watch error %d", errno);
+      printf("watch error %d, path %s", errno, paths[i]);
       return 1;
     }
     else {
