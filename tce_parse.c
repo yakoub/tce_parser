@@ -141,6 +141,8 @@ void player_info(const char* line, GameScore *game) {
   static char name[64], guid[33];
 
   Player *pl = game->players + game->client_connect;
+  game->client_connect = -1;
+
   char *at = strstr(line, "cl_guid");
   if (at) {
     sscanf(at, "cl_guid\\%33[^\\]", guid);
