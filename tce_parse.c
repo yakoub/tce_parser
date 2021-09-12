@@ -2,7 +2,7 @@
 #include "debug.h"
 #include <signal.h>
 
-#define DBGLVL 2
+#define DBGLVL 4
 
 typedef struct {
   const char* op;

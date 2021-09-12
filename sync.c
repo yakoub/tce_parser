@@ -4,7 +4,7 @@
 #include "data.h"
 #include <signal.h>
 
-#define DBGLVL 2
+#define DBGLVL 4
 
 typedef struct {
   int wd;
