@@ -2,7 +2,7 @@
 #include <stddef.h>
 
 char *paths[2] = {
-  "./watch.d"
+  "./watch.d",
   "./watch2.d"
 };
 
