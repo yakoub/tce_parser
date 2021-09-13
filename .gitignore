@@ -1,2 +1,3 @@
 *.o
 tce_watch
+conf.c
