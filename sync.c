@@ -125,13 +125,14 @@ void sync_logs(const char *name, int wd) {
     logfile = game_slots[at].game_log;
     pos = &game_slots[at].game_pos;
     parse = tce_parse;
+    debug_info(DBGLVL + 1, "game.log for ws=%d", wd);
   }
   else {
     if (strcmp(name, "etconsole.log") == 0) {
       logfile = game_slots[at].console_log;
       pos = &game_slots[at].console_pos;
       parse = tce_parse_guid;
-      debug_info(DBGLVL+1, "etconsole.log for ws=%d", wd);
+      debug_info(DBGLVL + 1, "etconsole.log for ws=%d", wd);
     }
     else {
       return;
@@ -146,7 +147,7 @@ void sync_logs(const char *name, int wd) {
     rewind(logfile);
   }
   while (fgets(buff, BUFF_SIZE, logfile)) {
-    tce_parse(buff, game_slots[at].game);
+    parse(buff, game_slots[at].game);
   }
   debug_info(DBGLVL, "wd %d, start pos %d", wd, *pos);
   *pos = ftell(logfile);

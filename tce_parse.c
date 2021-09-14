@@ -30,6 +30,19 @@ enum router_ids {
 
 void tce_parse_init();
 
+void tce_parse_guid(const char* line, GameScore *game) {
+  static char ignore[16], op[64];
+  sscanf(line, "%16s %64[^:]", ignore, op);
+
+  if (
+    strcmp("Userinfo", op) == 0
+    || strcmp("ClientConnect", op) == 0
+    ) {
+    debug_info(DBGLVL, "console called: %s\n", op);
+    tce_parse(line, game);
+  }
+}
+
 void tce_parse(const char* line, GameScore *game) {
 
   static char ignore[16], op[64], buff[BUFF_SIZE];
@@ -98,6 +111,7 @@ void player_disconnect(const char* line, GameScore *game) {
   for(int i = 0; i < MAX_PLAYERS; i++) {
     if (game->players[i].idx == idx) {
       game->players[i].idx *= -1;
+      game->players[i].guid[0] = '#';
       debug_info(DBGLVL, "Player: idx %d gone\n", idx);
       break;
     }
@@ -126,6 +140,9 @@ void player_connect(const char* line, GameScore *game) {
   }
   Player *pl = &game->players[empty];
   pl->idx = idx;
+  pl->name[0] = '\0';
+  pl->guid[0] = '#'; //in case of cli batch import
+  pl->guid[1] = '\0';
   game->client_connect = empty;
   debug_info(DBGLVL, "Player: idx %d new\n", game->players[empty].idx);
 }
@@ -135,7 +152,7 @@ void player_begin(const char* line, GameScore *game) {
 }
 
 void player_info(const char* line, GameScore *game) {
-  if (game->client_connect == -1) {
+  if (game->client_connect == -1 || game->client_connect > 20) {
     return;
   }
   static char name[64], guid[33];
