@@ -15,7 +15,8 @@ struct Sql {
   const char *insert_player_score;
   const char *insert_player_score_values;
   const char *insert_game;
-  const char *fetch_player;
+  const char *fetch_player_name;
+  const char *fetch_player_guid;
   const char *insert_player;
 } Query;
 
@@ -105,11 +106,10 @@ void save_player_scores(GameScore *game, char *query_buff) {
   }
 }
 
-typedef enum {false = 0, true = 1} bool;
 bool fetch_player(Player*, char*, char*, char*); 
 void save_player(Player*, char*, char*, char*); 
 
-void data_sync_player(Player* pl) {
+void data_sync_player(Player* pl, bool guid_trust) {
   static char query_buff[256], name[64], guid[33];
   
   data_init(OPEN);
@@ -120,13 +120,24 @@ void data_sync_player(Player* pl) {
   if (fetch_player(pl, query_buff, name, guid)) {
     return;
   }
+  if (!guid_trust) {
+    guid[0] = '#';
+    guid[1] = '\0';
+    pl->guid[0] = '#';
+    pl->guid[1] = '\0';
+  }
   save_player(pl, query_buff, name, guid);
 }
 
 bool fetch_player(Player* pl, char *query_buff, char *name, char *guid) {
   size_t written;
 
-  written = snprintf(query_buff, 256, Query.fetch_player, name, guid);
+  if (guid[0] == '#') {
+    written = snprintf(query_buff, 256, Query.fetch_player_name, name);
+  }
+  else {
+    written = snprintf(query_buff, 256, Query.fetch_player_guid, name, guid);
+  }
 
   if (written > 256) {
     debug_info(DBGLVL, "aborted query %.256s\n", query_buff);
@@ -177,9 +188,14 @@ void data_sql_init() {
     " (mapname, hostname, team_red, team_blue, gametype)"
     " values ('%s', '%s', %d, %d, %d)";
 
-  Query.fetch_player = 
+  Query.fetch_player_guid = 
     "select id from player_index"
     " where name = '%s' and guid = '%s'";
+
+  Query.fetch_player_name = 
+    "select id from player_index"
+    " where name = '%s'";
+
   Query.insert_player =
     "insert into player_index"
     " (name, guid)"

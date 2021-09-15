@@ -178,7 +178,7 @@ void player_info(const char* line, GameScore *game) {
     || strcmp(guid, pl->guid) != 0) {
     strncpy(pl->name, name, 64);
     strncpy(pl->guid, guid, 33);
-    data_sync_player(pl);
+    data_sync_player(pl, true);
   }
 }
 
@@ -195,7 +195,7 @@ void player_info_change(const char* line, GameScore *game) {
       game->players[i].team = team;
       if (strncmp(game->players[i].name, name, 64) != 0) {
         strncpy(game->players[i].name, name, 64);
-        data_sync_player(game->players + i);
+        data_sync_player(game->players + i, false);
       }
       break;
     }

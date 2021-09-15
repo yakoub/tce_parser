@@ -46,6 +46,8 @@ typedef struct {
 
 } GameScore;
 
+typedef enum {false = 0, true = 1} bool;
+
 void save_game_scores(GameScore*);
-void data_sync_player(Player*);
+void data_sync_player(Player*, bool guid_trust);
 #endif
