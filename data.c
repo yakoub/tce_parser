@@ -18,6 +18,7 @@ struct Sql {
   const char *fetch_player_name;
   const char *fetch_player_guid;
   const char *insert_player;
+  const char *update_player;
 } Query;
 
 void save_game(GameScore*, char* , char*, char*);
@@ -161,8 +162,14 @@ bool fetch_player(Player* pl, char *query_buff, char *name, char *guid) {
 
 void save_player(Player* pl, char *query_buff, char *name, char *guid) {
   size_t written;
+  bool player_exists = (guid[0] != '#' && fetch_player(pl, query_buff, name, "#"));
 
-  written = snprintf(query_buff, 256, Query.insert_player, name, guid);
+  if (player_exists) {
+    written = snprintf(query_buff, 256, Query.update_player, guid, pl->player_id);
+  }
+  else {
+    written = snprintf(query_buff, 256, Query.insert_player, name, guid);
+  }
 
   if (written > 256) {
     debug_info(DBGLVL, "aborted query %.256s\n", query_buff);
@@ -173,7 +180,9 @@ void save_player(Player* pl, char *query_buff, char *name, char *guid) {
     debug_info(DBGLVL, "failed : %s\n", query_buff);
     return;
   }
-  pl->player_id = mysql_insert_id(tce_db);
+  if (!player_exists) {
+    pl->player_id = mysql_insert_id(tce_db);
+  }
 }
 
 void data_sql_init() {
@@ -200,6 +209,10 @@ void data_sql_init() {
     "insert into player_index"
     " (name, guid)"
     " values ('%s', '%s')";
+
+  Query.update_player = 
+    "update player_index set guid = '%s'"
+    " where id = %d";
 }
 
 void data_init(stage st) {
