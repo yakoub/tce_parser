@@ -1,0 +1,13 @@
+[Unit]
+Description=TCE watch service
+After=network.target
+
+[Service]
+User=etl
+Group=etl
+WorkingDirectory=/home/etl/
+
+ExecStart=/home/etl/etlegacy/tce_watch
+
+[Install]
+WantedBy=default.target
