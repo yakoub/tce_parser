@@ -12,7 +12,7 @@ bin/tce_parse.o: tce_parse.c tce_parse.h data.h debug.h
 	gcc ${debug} -c tce_parse.c -o bin/tce_parse.o
 bin/data.o: data.c data.h debug.h
 	gcc ${debug} -c ${myinc} data.c -o bin/data.o
-bin/config.o: data.h
+bin/config.o: data.h conf.c
 	gcc ${debug} -c conf.c -o bin/config.o
 clean:
 	rm bin/* tce_watch
