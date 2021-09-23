@@ -154,7 +154,7 @@ void sync_logs_rewind(const char* name, int wd) {
     }
     slot->game_log = fopen(strcat(filename, "/game.log"), "r");
     slot->game_pos = 0;
-    debug_info(DBGLVL , "game.log rewind for wd %s", wd);
+    debug_info(DBGLVL , "game.log rewind for wd %d", wd);
   }
   if (strcmp(name, "etconsole.log") == 0) {
     if (slot->console_log) {
@@ -162,7 +162,7 @@ void sync_logs_rewind(const char* name, int wd) {
     }
     slot->console_log = fopen(strcat(filename, "/etconsole.log"), "r");
     slot->console_pos = 0;
-    debug_info(DBGLVL , "etconsole.log rewind for wd %s", wd);
+    debug_info(DBGLVL , "etconsole.log rewind for wd %d", wd);
   }
   sync_write_pos(slot);
 }
