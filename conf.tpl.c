@@ -1,13 +1,14 @@
 #include "data.h"
 #include <stddef.h>
 
-char *paths[2] = {
+#define PATHS 2
+char *paths[PATHS] = {
   "./watch.d",
   "./watch2.d"
 };
 
 char** config_paths(int *count) {
-  *count = 2;
+  *count = PATHS;
   return paths;
 }
 
