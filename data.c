@@ -14,10 +14,14 @@ MYSQL *tce_db;
 struct Sql {
   const char *insert_player_score;
   const char *insert_player_score_values;
+  const char *insert_server;
+  const char *update_hostname_plain;
+  const char *fetch_server;
   const char *insert_game;
   const char *fetch_player_name;
   const char *fetch_player_guid;
   const char *insert_player;
+  const char *update_name_plain;
   const char *update_player;
 } Query;
 
@@ -38,14 +42,53 @@ void save_game_scores(GameScore *game) {
   save_player_scores(game, query_buff);
 }
 
+void save_server(GameScore *game, char *name1, char *query_buff) {
+  size_t written;
+
+  es(tce_db, name1, game->hostname, strlen(game->hostname));
+  written = snprintf(query_buff, 256, Query.fetch_server, name1);
+  if (written > 256) {
+    debug_info(DBGLVL, "aborted query %.256s\n", query_buff);
+  }
+  else {
+    debug_info(DBGLVL+1, "fetch server %.256s\n", query_buff);
+  }
+  mysql_query(tce_db, query_buff);
+  MYSQL_RES *result = mysql_store_result(tce_db);
+  if (result) {
+    MYSQL_ROW row;
+    row = mysql_fetch_row(result);
+    if (row) {
+      game->server_id = atol(row[0]);
+      mysql_free_result(result);
+      return;
+    }
+  }
+
+  written = snprintf(query_buff, 256, Query.insert_server, name1);
+  if (written > 256) {
+    debug_info(DBGLVL, "aborted query %.256s\n", query_buff);
+  }
+  int ret = mysql_query(tce_db, query_buff);
+  if (ret != 0) {
+    debug_info(DBGLVL, "failed : %s\n", query_buff);
+    return;
+  }
+  debug_info(DBGLVL+1, "%.256s\n", query_buff);
+  game->server_id = mysql_insert_id(tce_db);
+  snprintf(query_buff, 256, Query.update_hostname_plain, game->server_id);
+  mysql_query(tce_db, query_buff);
+}
+
 void save_game(GameScore *game, char *name1, char *name2, char *query_buff) {
   size_t written; 
 
+  save_server(game, name1, query_buff);
+
   es(tce_db, name1, game->mapname, strlen(game->mapname));
-  es(tce_db, name2, game->hostname, strlen(game->hostname));
 
   written = snprintf(query_buff, 5120, Query.insert_game,
-    name1, name2, game->team_red, game->team_blue, game->gametype);
+    name1, game->server_id, game->team_red, game->team_blue, game->gametype);
   if (written > 5120) {
     debug_info(DBGLVL, "aborted query %.256s\n", query_buff);
     return;
@@ -182,6 +225,8 @@ void save_player(Player* pl, char *query_buff, char *name, char *guid) {
   }
   if (!player_exists) {
     pl->player_id = mysql_insert_id(tce_db);
+    snprintf(query_buff, 256, Query.update_name_plain, pl->player_id);
+    mysql_query(tce_db, query_buff);
   }
 }
 
@@ -192,10 +237,18 @@ void data_sql_init() {
     " score, kills, deaths, headshots, damage_given, damage_recieved)"
     " values ";
   Query.insert_player_score_values = "(%d, %d, %d, '%d', %d, %d, %d, %d, %d, %d, %d),";
+  
+  Query.insert_server = "insert into game_server (hostname) values ('%s')";
+  Query.update_hostname_plain = 
+    "update game_server"
+    " set hostname_plain = regexp_replace(hostname, '\\\\^.', '')"
+    " where id = %d";
+  Query.fetch_server = "select id from game_server where hostname = '%s'";
+
   Query.insert_game = 
     "insert into game_match"
-    " (mapname, hostname, team_red, team_blue, gametype)"
-    " values ('%s', '%s', %d, %d, %d)";
+    " (mapname, server_id, team_red, team_blue, gametype)"
+    " values ('%s', '%d', %d, %d, %d)";
 
   Query.fetch_player_guid = 
     "select id from player_index"
@@ -209,6 +262,11 @@ void data_sql_init() {
     "insert into player_index"
     " (name, guid)"
     " values ('%s', '%s')";
+
+  Query.update_name_plain =
+    "update player_index"
+    " set name_plain = regexp_replace(name, '\\\\^.', '')"
+    " where id = %d";
 
   Query.update_player = 
     "update player_index set guid = '%s'"

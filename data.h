@@ -40,6 +40,7 @@ typedef struct {
   int player_scores;
   int gametype;
   unsigned long game_id;
+  unsigned long server_id;
 
   Player players[MAX_PLAYERS];
   int client_connect;

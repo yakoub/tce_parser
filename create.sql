@@ -4,22 +4,37 @@ select 'drop index' as stage;
 drop table if exists `player_index`;
 select 'drop game_match' as stage;
 drop table if exists `game_match`;
+select 'drop game_server' as stage;
+drop table if exists `game_server`;
+
+
+create table `game_server` (
+  `id` int unsigned not null auto_increment,
+  `hostname` varchar(64),
+  `hostname_plain` varchar(64),
+  `port` int unsigned,
+  `ip` varchar(16),
+
+  primary key(`id`)
+);
 
 create table `game_match` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `created` datetime not null default CURRENT_TIMESTAMP,
   `mapname` varchar(64),
-  `hostname` varchar(64),
+  `server_id` int unsigned not null,
   `team_red` smallint,
   `team_blue` smallint,
   `gametype` smallint,
 
+  foreign key (`server_id`) references game_server (`id`) on delete cascade,
   primary key(`id`)
 );
 
 create table `player_index` (
   `guid` varchar(33),
   `name` varchar(64),
+  `name_plain` varchar(64),
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   primary key(`id`),
   unique(guid, name)
