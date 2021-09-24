@@ -54,7 +54,7 @@ void watch_handler(int ino_desc) {
   
   ssize_t len;
   while(1) {
-    printf("enter poll\n");
+    debug_info(1, "enter poll\n");
     poll(pfds, 1, -1);
     len=read(ino_desc, events_buff, sizeof(events_buff));
     
