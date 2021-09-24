@@ -198,14 +198,6 @@ void sync_logs(const char *name, int wd) {
   }
   fseek(logfile, *pos, SEEK_SET);
 
-  if (fgets(buff, BUFF_SIZE, logfile)) {
-    parse(buff, game_slots[at].game);
-  }
-  else {
-    debug_info(DBGLVL, "wd %d, rewind\n", wd);
-    rewind(logfile);
-  }
-
   while (fgets(buff, BUFF_SIZE, logfile)) {
     parse(buff, game_slots[at].game);
   }
