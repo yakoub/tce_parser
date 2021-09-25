@@ -118,7 +118,6 @@ void save_player_scores(GameScore *game, char *query_buff) {
 
     if (player->idx < 0) {
       idx = player->idx * -1; 
-      player->idx == Empty;
     }
     else {
       idx = player->idx; 

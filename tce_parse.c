@@ -291,11 +291,16 @@ void shutdown_game(const char* line, GameScore *game) {
   if (game->player_scores > 1) {
     save_game_scores(game);
   }
-  else {
-    for (int i=0; i < MAX_PLAYERS; i++) {
-      if (game->players[i].idx < 0) {
-        game->players[i].idx = Empty;
-      }
+
+  Player *pl;
+  for (int i=0; i < MAX_PLAYERS; i++) {
+    pl = game->players + i;
+    if (pl->idx < 0) {
+      pl->idx = Empty;
+    }
+    if (pl->team == 3) {
+      pl->kills = pl->deaths = pl->score =
+      pl->damage_recieved = pl->damage_given = 0;
     }
   }
   debug_info(DBGLVL + 1, "game shutdown, scores %d\n", game->player_scores);
