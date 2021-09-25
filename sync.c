@@ -41,7 +41,7 @@ void sync_write_pos(game_dir *slot) {
   fwrite(&dwatch, sizeof(dir_watch), 1, slot->pos_track);
   fflush(slot->pos_track);
   
-  debug_info(DBGLVL + 1, "wrote pos wd = %d game = %d\n", slot->wd, dwatch.game_pos);
+  debug_info(DBGLVL+1, "wrote pos wd = %d game = %d\n", slot->wd, dwatch.game_pos);
 }
 
 void sync_read_pos(game_dir *slot) {
@@ -50,7 +50,7 @@ void sync_read_pos(game_dir *slot) {
   if (!slot->pos_track) {
     slot->game_pos = 0;
     slot->console_pos = 0;
-    debug_info(DBGLVL, "pos_track not open at reading\n");
+    debug_info(DBGLVL+1, "pos_track not open at reading\n");
     return;
   }
   rewind(slot->pos_track);
@@ -61,7 +61,7 @@ void sync_read_pos(game_dir *slot) {
   slot->game_pos = dwatch.game_pos;
   slot->console_pos = dwatch.console_pos;
 
-  debug_info(DBGLVL + 1, "read pos wd = %d game = %d\n", slot->wd, slot->game_pos);
+  debug_info(DBGLVL+1, "read pos wd = %d game = %d\n", slot->wd, slot->game_pos);
 }
 
 void sync_logs_action(int sig) {
@@ -73,7 +73,7 @@ void sync_logs_action(int sig) {
     }
   }
   data_init(CLOSE);
-  debug_info(DBGLVL + 1, "game shutdown by signal");
+  debug_info(DBGLVL+1, "game shutdown by signal");
   exit(EXIT_SUCCESS);
 }
 
@@ -92,7 +92,7 @@ int sync_logs_find(int wd) {
   int empty = -1;
   for (int i=0; i < SLOTS; i++) {
     if (game_slots[i].wd == wd) {
-      debug_info(DBGLVL, "wd %d found\n", wd);
+      debug_info(DBGLVL+1, "wd %d found\n", wd);
       return i;
     }
     if (game_slots[i].wd == empty) {
@@ -124,7 +124,7 @@ void sync_logs_assign(int wd, const char* path) {
       game_slots[i].path = path;
       game_slots[i].game = malloc(sizeof(GameScore));
       tce_parse_game_init(game_slots[i].game);
-      debug_info(DBGLVL, "wd %d assinged to %d\n", wd, i);
+      debug_info(DBGLVL+1, "wd %d assinged to %d\n", wd, i);
       return;
     }
   }
@@ -179,14 +179,14 @@ void sync_logs(const char *name, int wd) {
     logfile = game_slots[at].game_log;
     pos = &game_slots[at].game_pos;
     parse = tce_parse;
-    debug_info(DBGLVL + 1, "game.log for ws=%d\n", wd);
+    debug_info(DBGLVL+1, "game.log for ws=%d\n", wd);
   }
   else {
     if (strcmp(name, "etconsole.log") == 0) {
       logfile = game_slots[at].console_log;
       pos = &game_slots[at].console_pos;
       parse = tce_parse_guid;
-      debug_info(DBGLVL + 1, "etconsole.log for ws=%d\n", wd);
+      debug_info(DBGLVL+1, "etconsole.log for ws=%d\n", wd);
     }
     else {
       return;
@@ -201,8 +201,8 @@ void sync_logs(const char *name, int wd) {
   while (fgets(buff, BUFF_SIZE, logfile)) {
     parse(buff, game_slots[at].game);
   }
-  debug_info(DBGLVL, "wd %d, start pos %d", wd, *pos);
+  debug_info(DBGLVL+1, "wd %d, start pos %d", wd, *pos);
   *pos = ftell(logfile);
-  debug_info(DBGLVL, ", end pos %d\n", *pos);
+  debug_info(DBGLVL+1, ", end pos %d\n", *pos);
   sync_write_pos(game_slots + at);
 }
