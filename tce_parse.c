@@ -275,11 +275,9 @@ void weapons_stats(const char* line, GameScore *game) {
       debug_info(DBGLVL, "weapon stats error for %d, buff %s", idx, buff);
       break;
     }
-    if (hits > 0) { // not ctf related
-      p->kills += kills;
-      p->deaths += deaths;
-      p->headshots += headshots;
-    }
+    p->kills += kills;
+    p->deaths += deaths;
+    p->headshots += headshots;
   }
   sscanf(buff, " %d %d", &p->damage_given, &p->damage_recieved);
 
