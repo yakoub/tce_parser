@@ -1,3 +1,4 @@
-*.o
+bin
 tce_watch
+tce_reset
 conf.c
