@@ -4,6 +4,8 @@ debug = -g
 objects = bin/watch.o bin/sync.o bin/tce_parse.o bin/data.o bin/config.o
 tce_watch: ${objects}
 	gcc ${debug} ${objects} ${mylib} -o tce_watch 
+tce_reset: sync_reset.c
+	gcc sync_reset.c -o tce_reset
 bin/watch.o: watch.c sync.h data.h debug.h
 	gcc ${debug} -c watch.c -o bin/watch.o
 bin/sync.o: sync.c sync.h tce_parse.h debug.h
