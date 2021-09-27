@@ -16,3 +16,5 @@ bin/config.o: data.h conf.c
 	gcc ${debug} -c conf.c -o bin/config.o
 clean:
 	rm bin/* tce_watch
+pack:
+	tar -cf pack.tar *h watch.c sync.c tce_parse.c data.c conf.tpl.c
