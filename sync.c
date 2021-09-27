@@ -61,7 +61,7 @@ void sync_read_pos(game_dir *slot) {
   slot->game_pos = dwatch.game_pos;
   slot->console_pos = dwatch.console_pos;
 
-  debug_info(DBGLVL+1, "read pos wd = %d game = %d\n", slot->wd, slot->game_pos);
+  debug_info(DBGLVL, "read pos wd = %d game = %d\n", slot->wd, slot->game_pos);
 }
 
 void sync_logs_action(int sig) {
@@ -186,7 +186,7 @@ void sync_logs(const char *name, int wd) {
       logfile = game_slots[at].console_log;
       pos = &game_slots[at].console_pos;
       parse = tce_parse_guid;
-      debug_info(DBGLVL+1, "etconsole.log for ws=%d\n", wd);
+      debug_info(DBGLVL, "etconsole.log for ws=%d\n", wd);
     }
     else {
       return;
@@ -201,8 +201,8 @@ void sync_logs(const char *name, int wd) {
   while (fgets(buff, BUFF_SIZE, logfile)) {
     parse(buff, game_slots[at].game);
   }
-  debug_info(DBGLVL+1, "wd %d, start pos %d", wd, *pos);
+  debug_info(DBGLVL, "wd %d, start pos %d", wd, *pos);
   *pos = ftell(logfile);
-  debug_info(DBGLVL+1, ", end pos %d\n", *pos);
+  debug_info(DBGLVL, ", end pos %d\n", *pos);
   sync_write_pos(game_slots + at);
 }
