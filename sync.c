@@ -2,7 +2,6 @@
 #include "debug.h"
 #include "tce_parse.h"
 #include "data.h"
-#include "conf.h"
 #include <signal.h>
 
 #define DBGLVL 4

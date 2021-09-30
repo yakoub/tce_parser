@@ -14,7 +14,7 @@ void watch_handler(int ino_desc);
 int main(int argc, char* argv[]) {
   int ino_desc = inotify_init();  
   int path_count;
-  PatchConfig conf = config_paths(&path_count);
+  PathConfig *conf = config_paths(&path_count);
   int *ino_watch = malloc(path_count * sizeof(int));
 
   sync_logs_init();
@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
       return 1;
     }
     else {
-      sync_logs_assign(ino_watch[i], conf[i]);
+      sync_logs_assign(ino_watch[i], conf + i);
     }
   }
 

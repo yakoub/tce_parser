@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#include "conf.h"
 
 void sync_logs_init();
 
-void sync_logs_assign(int wd, const char* path);
+void sync_logs_assign(int wd, const PathConfig*);
 
 void sync_logs_close();
 
