@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "tce_parse.h"
 #include "data.h"
+#include "conf.h"
 #include <signal.h>
 
 #define DBGLVL 4
@@ -103,17 +104,17 @@ int sync_logs_find(int wd) {
   return empty;
 }
 
-void sync_logs_assign(int wd, const char* path) {
+void sync_logs_assign(int wd, const PathConfig* config) {
   char filename[128];
   for (int i=0; i<SLOTS; i++) {
     if (game_slots[i].wd == -1) {
       game_slots[i].wd = wd;
       
-      strncpy(filename, path, 100);
+      strncpy(filename, config->path, 100);
       game_slots[i].game_log = fopen(strcat(filename, "/game.log"), "r");
-      strncpy(filename, path, 100);
+      strncpy(filename, config->path, 100);
       game_slots[i].console_log = fopen(strcat(filename, "/etconsole.log"), "r");
-      strncpy(filename, path, 100);
+      strncpy(filename, config->path, 100);
       game_slots[i].pos_track = fopen(strcat(filename, "/.tce_watch"), "r+b");
       if (!game_slots[i].pos_track) {
         debug_info(DBGLVL, "wd %d pos_track created\n", wd);
@@ -121,8 +122,9 @@ void sync_logs_assign(int wd, const char* path) {
       }
       sync_read_pos(game_slots + i);
 
-      game_slots[i].path = path;
+      game_slots[i].path = config->path;
       game_slots[i].game = malloc(sizeof(GameScore));
+      strncpy(game_slots[i].game->hostname, config->hostname, 64);
       tce_parse_game_init(game_slots[i].game);
       debug_info(DBGLVL+1, "wd %d assinged to %d\n", wd, i);
       return;

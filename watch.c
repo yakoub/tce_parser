@@ -7,20 +7,20 @@
 #include "sync.h"
 #include "debug.h"
 #include "data.h"
+#include "conf.h"
 
 void watch_handler(int ino_desc);
-char ** config_paths(int *);
 
 int main(int argc, char* argv[]) {
   int ino_desc = inotify_init();  
   int path_count;
-  char **paths = config_paths(&path_count);
+  PatchConfig paths = config_paths(&path_count);
   int *ino_watch = malloc(path_count * sizeof(int));
 
   sync_logs_init();
 
   for (int i=0; i < path_count; i++) {
-    ino_watch[i] = inotify_add_watch(ino_desc, paths[i], IN_MODIFY | IN_CREATE);
+    ino_watch[i] = inotify_add_watch(ino_desc, paths[i].path, IN_MODIFY | IN_CREATE);
     if (ino_watch[i] == -1) {
       printf("watch error %d, path %s", errno, paths[i]);
       return 1;

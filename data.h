@@ -1,13 +1,5 @@
 #ifndef DATA
 #define DATA
-typedef struct _data_config {
-  const char* user;
-  const char* password;
-  const char* host;
-  const char* db;
-} DataConfig;
-
-void config_data(DataConfig*);
 
 typedef enum {CLOSE, OPEN} stage;
 void data_init(stage);
