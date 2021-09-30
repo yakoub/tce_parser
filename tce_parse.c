@@ -80,14 +80,6 @@ void init_game(const char* line, GameScore *game) {
     game->gametype = -1;
   }
 
-  at = strstr(line, "sv_hostname");
-  if (at) {
-    sscanf(at, "sv_hostname\\%64[^\\]", game->hostname);
-  }
-  else {
-    strcpy(game->hostname, "not found\0");
-  }
-
   game->player_scores = 0;
 
   debug_info(DBGLVL + 1, "init game: host %s map %s type %d\n", 
