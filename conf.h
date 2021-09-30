@@ -19,5 +19,4 @@ typedef struct _data_config {
 
 void config_data(DataConfig*);
 
-
 #endif

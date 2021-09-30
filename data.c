@@ -4,6 +4,7 @@
 #include <mysql.h>
 #include <string.h>
 #include "debug.h"
+#include "conf.h"
 
 #define DBGLVL 4
 
