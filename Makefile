@@ -25,3 +25,4 @@ clean:
 pack:
 	tar -cf pack.tar *.h watch.c sync.c sync_reset.c 
 	tar -rf pack.tar tce_parse.c data.c conf.tpl.c
+	tar -rf pack.tar Makefile
