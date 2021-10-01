@@ -4,6 +4,7 @@
 typedef struct {
   const char* path;
   const char* hostname;
+  int gametype;
   const char* ip;
   const int port;
 } PathConfig;

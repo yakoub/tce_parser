@@ -123,6 +123,7 @@ void sync_logs_assign(int wd, const PathConfig* config) {
 
       game_slots[i].path = config->path;
       game_slots[i].game = malloc(sizeof(GameScore));
+      game_slots[i].game->gametype = config->gametype;
       strncpy(game_slots[i].game->hostname, config->hostname, 64);
       tce_parse_game_init(game_slots[i].game);
       debug_info(DBGLVL+1, "wd %d assinged to %d\n", wd, i);

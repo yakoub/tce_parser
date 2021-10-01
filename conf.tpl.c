@@ -8,12 +8,14 @@ PathConfig path_conf[PATHS] = {
   {
     .path = "./watch.d", 
     .hostname = "^3first^rHost", 
+    .gametype = 4,
     .ip = "127.0.0.1", 
     .port = 27960
   },
   {
     .path = "./watch2.d", 
     .hostname = "^?second^8Host", 
+    .gametype = 4,
     .ip = "127.0.0.2", 
     .port = 27920
   }
