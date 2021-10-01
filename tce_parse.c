@@ -88,7 +88,6 @@ void init_game(const char* line, GameScore *game) {
 
 void init_legacy_game(const char* line, GameScore *game) {
   sscanf(line, ": %64s", game->mapname);
-  strcpy(game->hostname, "legacy");
   game->player_scores = 0;
 
   debug_info(DBGLVL + 1, "init game: host %s map %s type %d\n", 
