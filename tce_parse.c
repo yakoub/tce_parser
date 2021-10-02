@@ -68,16 +68,10 @@ void init_game(const char* line, GameScore *game) {
   if (at) {
     sscanf(at, "mapname\\%64[^\\]", game->mapname);
   }
-  else {
-    strcpy(game->mapname, "not found\0");
-  }
 
   at = strstr(line, "g_gametype");
   if (at) {
     sscanf(at, "g_gametype\\%d", &game->gametype);
-  }
-  else {
-    game->gametype = -1;
   }
 
   game->player_scores = 0;
