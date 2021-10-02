@@ -36,6 +36,7 @@ create table `player_index` (
   `name` varchar(64),
   `name_plain` varchar(64),
   `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `bot` boolean not null default FALSE,
   primary key(`id`),
   unique(guid, name)
 );
