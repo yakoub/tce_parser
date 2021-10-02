@@ -218,7 +218,6 @@ void player_score(const char* line, GameScore *game) {
       || game->players[i].idx == buff.idx * -1) {
       game->players[i].score = buff.score;
       game->players[i].ping = buff.ping;
-      game->player_scores++;
       debug_info(DBGLVL, "player %d register score %d, total %d\n", 
         buff.idx, buff.score, game->player_scores);
       return;
@@ -268,6 +267,9 @@ void weapons_stats(const char* line, GameScore *game) {
     p->kills += kills;
     p->deaths += deaths;
     p->headshots += headshots;
+  }
+  if (p->kills > 0 || p->deaths >0) {
+    game->player_scores++;
   }
   sscanf(buff, " %d %d", &p->damage_given, &p->damage_recieved);
 
