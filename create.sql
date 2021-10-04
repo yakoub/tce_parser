@@ -14,6 +14,7 @@ create table `game_server` (
   `hostname_plain` varchar(64),
   `port` int unsigned,
   `ip` varchar(16),
+  `tcetest` boolean,
 
   primary key(`id`)
 );

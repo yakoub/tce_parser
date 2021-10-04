@@ -1,1 +1,2 @@
-alter table `player_index` add column `bot` boolean not null default FALSE;
+alter table `game_server` add column `tcetest` boolean not null default FALSE;
+
