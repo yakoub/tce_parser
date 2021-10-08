@@ -83,9 +83,6 @@ void init_game(const char* line, GameScore *game) {
 void init_legacy_game(const char* line, GameScore *game) {
   sscanf(line, ": %64s", game->mapname);
   game->player_scores = 0;
-
-  debug_info(DBGLVL + 1, "init game: host %s map %s type %d\n", 
-    game->hostname, game->mapname, game->gametype);
 }
 
 void player_disconnect(const char* line, GameScore *game) {
@@ -96,7 +93,7 @@ void player_disconnect(const char* line, GameScore *game) {
     if (game->players[i].idx == idx) {
       game->players[i].idx *= -1;
       game->players[i].guid[0] = '#';
-      debug_info(DBGLVL, "Player: idx %d gone\n", idx);
+      debug_info(DBGLVL + 1, "Player: idx %d gone\n", idx);
       break;
     }
   }
@@ -128,7 +125,7 @@ void player_connect(const char* line, GameScore *game) {
   pl->guid[0] = '#'; //in case of cli batch import
   pl->guid[1] = '\0';
   game->client_connect = empty;
-  debug_info(DBGLVL, "Player: idx %d new\n", game->players[empty].idx);
+  debug_info(DBGLVL + 1, "Player: idx %d new\n", game->players[empty].idx);
 }
 
 void player_begin(const char* line, GameScore *game) {
@@ -238,7 +235,7 @@ void weapons_stats(const char* line, GameScore *game) {
     return;
   }
 
-  debug_info(DBGLVL, "mask %d, ", mask);
+  debug_info(DBGLVL + 1, "mask %d, ", mask);
   int weapons = 0;
   while(mask > 0 && weapons < 16) {
     if (mask & 1) {
@@ -246,16 +243,16 @@ void weapons_stats(const char* line, GameScore *game) {
     }
     mask = mask >> 1;
   }
-  debug_info(DBGLVL, "weapons %d\n", weapons);
+  debug_info(DBGLVL + 1, "weapons %d\n", weapons);
   
   p->kills = p->deaths = p->headshots = 0;
   int read;
   while (weapons--) {
-    debug_info(DBGLVL, "wpns buff %s\n", buff);
+    debug_info(DBGLVL + 1, "wpns buff %s\n", buff);
     read = sscanf(buff, " %d %d %d %d %d%256[^#]", 
       &hits, &ignore, &kills, &deaths, &headshots, buff);
     if (read < 5) {
-      debug_info(DBGLVL, "weapon stats error for %d, buff %s", idx, buff);
+      debug_info(DBGLVL + 1, "weapon stats error for %d, buff %s", idx, buff);
       break;
     }
     p->kills += kills;
@@ -287,7 +284,7 @@ void shutdown_game(const char* line, GameScore *game) {
       pl->damage_recieved = pl->damage_given = 0;
     }
   }
-  debug_info(DBGLVL + 1, "game shutdown, scores %d\n", game->player_scores);
+  debug_info(DBGLVL, "game shutdown, scores %d\n", game->player_scores);
 }
 
 void tce_parse_init() {
