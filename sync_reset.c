@@ -42,11 +42,13 @@ void main(int argc, char **argv) {
       game_log = fopen(filename, "r");
       fseek(game_log, 0, SEEK_END);
       printf("report game = %ld\n", ftell(game_log));
+      fclose(game_log);
     }
     else {
       dwatch.console_pos = 0;
       rewind(pos_track);
       fwrite(&dwatch, sizeof(dir_watch), 1, pos_track);
     }
+    fclose(pos_track);
   }
 }

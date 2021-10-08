@@ -188,7 +188,7 @@ void sync_logs(const char *name, int wd) {
       logfile = game_slots[at].console_log;
       pos = &game_slots[at].console_pos;
       parse = tce_parse_guid;
-      debug_info(DBGLVL, "etconsole.log for ws=%d\n", wd);
+      debug_info(DBGLVL+1, "etconsole.log for ws=%d\n", wd);
     }
     else {
       return;
