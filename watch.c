@@ -9,6 +9,8 @@
 #include "data.h"
 #include "conf.h"
 
+#define DBGLVL 4
+
 void watch_handler(int ino_desc);
 
 int main(int argc, char* argv[]) {
@@ -63,6 +65,7 @@ void watch_handler(int ino_desc) {
          ptr += sizeof(struct inotify_event) + ev->len) {
       ev = (const struct inotify_event *) ptr;
       if (ev->mask & IN_CREATE) {
+        debug_info(DBGLVL, "rewind for %s wd = %d\n", ev->name, ev->wd);
         sync_logs_rewind(ev->name, ev->wd);
       }
       sync_logs(ev->name, ev->wd);
