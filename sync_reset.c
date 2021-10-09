@@ -40,9 +40,14 @@ void main(int argc, char **argv) {
       strncpy(filename, conf[i].path, 100);
       strcat(filename, "/game.log");
       game_log = fopen(filename, "r");
-      fseek(game_log, 0, SEEK_END);
-      printf("report game = %ld\n", ftell(game_log));
-      fclose(game_log);
+      if (game_log) {
+        fseek(game_log, 0, SEEK_END);
+        printf("report game = %ld\n", ftell(game_log));
+        fclose(game_log);
+      }
+      else {
+        printf("game log not found\n");
+      }
     }
     else {
       dwatch.console_pos = 0;
