@@ -133,12 +133,14 @@ void player_begin(const char* line, GameScore *game) {
 }
 
 void player_info(const char* line, GameScore *game) {
-  if (game->client_connect == -1 || game->client_connect > 20) {
-    return;
-  }
   static char name[64], guid[33];
-
-  Player *pl = game->players + game->client_connect;
+  Player temp, *pl;
+  if (game->client_connect == -1 || game->client_connect > 20) {
+    pl = &temp; //save guid although idx not known
+  }
+  else {
+    pl = game->players + game->client_connect;
+  }
   game->client_connect = -1;
 
   char *at = strstr(line, "cl_guid");
@@ -169,26 +171,40 @@ void player_info_change(const char* line, GameScore *game) {
 
   sscanf(line, ": %d n\\%64[^\\]\\t\\%d\\c", &idx, name, &team);
 
-  int found = -1;
+  int found = -1, empty = -1;
   for(int i = 0; i < MAX_PLAYERS; i++) {
     if (game->players[i].idx == idx) {
       found = i;
-      game->players[i].team = team;
-      if (strncmp(game->players[i].name, name, 64) != 0) {
-        strncpy(game->players[i].name, name, 64);
-        data_sync_player(game->players + i, false);
-      }
       break;
     }
+    if (game->players[i].idx == idx * -1) {
+      found = i;
+      game->players[i].idx = idx;
+      break;
+    }
+    if (game->players[i].idx == Empty && empty == -1) {
+      empty = i;
+    }
   }
-  if (found > -1) {
-    debug_info(DBGLVL + 1, "Player: name %s idx %d team %d\n", 
-      game->players[found].name, game->players[found].idx, game->players[found].team);
-  }
-  else {
+
+  if (found < 0) {
     debug_info(DBGLVL, "Player not found: name %s idx %d team %d\n",
       name, idx, team);
+    if (empty > -1) {
+      found = empty;
+      game->players[found].guid[0] = '#';
+      game->players[found].guid[1] = '\0';
+    }
+    else {
+      debug_info(DBGLVL, "Empty slot not found: name %s idx %d team %d\n",
+        name, idx, team);
+      return;
+    }
   }
+
+  game->players[found].team = team;
+  strncpy(game->players[found].name, name, 64);
+  data_sync_player(game->players + found, false);
 }
 
 void team_score(const char* line, GameScore *game) {
