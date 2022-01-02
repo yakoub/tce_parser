@@ -164,7 +164,7 @@ void sync_logs_rewind(const char* name, int wd) {
     }
     slot->console_log = fopen(strcat(filename, "/etconsole.log"), "r");
     slot->console_pos = 0;
-    debug_info(DBGLVL , "etconsole.log rewind for wd %d", wd);
+    debug_info(DBGLVL, "etconsole.log rewind for wd %d", wd);
   }
   sync_write_pos(slot);
 }
@@ -181,14 +181,14 @@ void sync_logs(const char *name, int wd) {
     logfile = game_slots[at].game_log;
     pos = &game_slots[at].game_pos;
     parse = tce_parse;
-    debug_info(DBGLVL+1, "game.log for ws=%d\n", wd);
+    debug_info(DBGLVL + 1, "game.log for ws=%d\n", wd);
   }
   else {
     if (strcmp(name, "etconsole.log") == 0) {
       logfile = game_slots[at].console_log;
       pos = &game_slots[at].console_pos;
       parse = tce_parse_guid;
-      debug_info(DBGLVL+1, "etconsole.log for ws=%d\n", wd);
+      debug_info(DBGLVL + 1, "etconsole.log for ws=%d\n", wd);
     }
     else {
       return;
@@ -203,8 +203,8 @@ void sync_logs(const char *name, int wd) {
   while (fgets(buff, BUFF_SIZE, logfile)) {
     parse(buff, game_slots[at].game);
   }
-  debug_info(DBGLVL, "wd %d, start pos %d", wd, *pos);
+  debug_info(DBGLVL + 1, "wd %d, start pos %d", wd, *pos);
   *pos = ftell(logfile);
-  debug_info(DBGLVL, ", end pos %d\n", *pos);
+  debug_info(DBGLVL + 1, ", end pos %d\n", *pos);
   sync_write_pos(game_slots + at);
 }
