@@ -308,7 +308,6 @@ void live_report(const char* line, GameScore *game) {
   FILE* fout = NULL;
 
   debug_info(-1, "");
-  printf("catch\n");
   
   fout = fopen("./livereport.log", "a");
   if (!fout) {
@@ -324,6 +323,7 @@ void live_report(const char* line, GameScore *game) {
     fprintf(fout, "player idx %d, id %d, team %d, name %s, guid %s, kills %d\n", 
       pl->idx, pl->player_id, pl->team, pl->name, pl->guid, pl->kills);
   }
+  fflush(fout);
 }
 
 void tce_parse_init() {
