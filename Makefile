@@ -1,7 +1,8 @@
 myinc != mariadb_config --include
 mylib != mariadb_config --libs
 debug = -g 
-objects = bin/watch.o bin/sync.o bin/tce_parse.o bin/data.o bin/config.o
+objects = bin/watch.o bin/sync.o bin/tce_parse.o 
+objects += bin/data.o bin/config.o bin/debug.o
 
 all: tce_watch tce_reset
 
@@ -20,9 +21,11 @@ bin/data.o: data.c data.h debug.h conf.h
 	gcc ${debug} -c ${myinc} data.c -o bin/data.o
 bin/config.o: data.h conf.c conf.h
 	gcc ${debug} -c conf.c -o bin/config.o
+bin/debug.o: debug.c debug.h
+	gcc ${debug} -c debug.c -o bin/debug.o
 clean:
 	rm bin/* tce_watch tce_reset
 pack:
 	tar -cf pack.tar *.h watch.c sync.c sync_reset.c 
-	tar -rf pack.tar tce_parse.c data.c conf.tpl.c
+	tar -rf pack.tar tce_parse.c data.c debug.c conf.tpl.c
 	tar -rf pack.tar Makefile

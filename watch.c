@@ -73,32 +73,3 @@ void watch_handler(int ino_desc) {
   }
 }
 
-#if DEBUG_LEVEL>0
-void debug_info(int level, const char* fmt, ...) {
-  static FILE* fout = NULL;
-  
-  if (!fout) {
-    fout = fopen("./watchinfo.log", "w");
-    if (!fout) {
-      fout = stdout;
-    }
-  }
-
-  if (strcmp(fmt, "close") == 0) {
-    if (fout != stdout) {
-      fclose(fout);
-    }
-    return;
-  }
-
-  if (level < DEBUG_LEVEL) {
-    
-    va_list args;
-    va_start(args, fmt);
-    vfprintf(fout, fmt, args);
-    va_end(args);
-
-    fflush(fout);
-  }
-}
-#endif

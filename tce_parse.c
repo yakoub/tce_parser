@@ -9,7 +9,7 @@ typedef struct {
   void (*parse)(const char*, GameScore*);
 } route;
 
-#define ROUTES 12
+#define ROUTES 13
 
 route router[ROUTES];
 
@@ -25,7 +25,8 @@ enum router_ids {
   Team,
   LegacyTeam,
   WeaponStats,
-  Score
+  Score,
+  Report
 };
 
 void tce_parse_init();
@@ -303,6 +304,28 @@ void shutdown_game(const char* line, GameScore *game) {
   debug_info(DBGLVL, "game shutdown, scores %d\n", game->player_scores);
 }
 
+void live_report(const char* line, GameScore *game) {
+  FILE* fout = NULL;
+
+  debug_info(-1, "");
+  printf("catch\n");
+  
+  fout = fopen("./livereport.log", "a");
+  if (!fout) {
+    fout = stdout;
+  }
+
+  fprintf(fout, "\n game: %s %s\n", game->hostname, game->mapname);
+  fprintf(fout, "game id: %d  server id: %d\n", game->game_id, game->server_id);
+  fprintf(fout, "client_connect: %d\n", game->client_connect);
+  Player *pl;
+  for (int i =0; i < MAX_PLAYERS; i++) {
+    pl = game->players + i;
+    fprintf(fout, "player idx %d, id %d, team %d, name %s, guid %s, kills %d\n", 
+      pl->idx, pl->player_id, pl->team, pl->name, pl->guid, pl->kills);
+  }
+}
+
 void tce_parse_init() {
 
   char *operations[ROUTES] = {
@@ -317,7 +340,8 @@ void tce_parse_init() {
     [Team]="red",
     [LegacyTeam]="axis",
     [WeaponStats]="WeaponStats",
-    [Score]="score"
+    [Score]="score",
+    [Report]="LiveReport"
   };
 
   void (*parsers[ROUTES])(const char*, GameScore*) = {
@@ -333,6 +357,7 @@ void tce_parse_init() {
     [LegacyTeam]=team_legacy_score,
     [WeaponStats]=weapons_stats,
     [Score]=player_score,
+    [Report]=live_report
   };
 
   for (int i=0; i< ROUTES; i++) {
